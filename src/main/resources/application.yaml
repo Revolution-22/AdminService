@@ -1,0 +1,16 @@
+spring:
+  threads:
+    virtual:
+      enabled: true
+  config:
+    import: vault://secret/admin-service
+  cloud:
+    vault:
+      host: vault
+      port: 8200
+      scheme: http
+      token: root
+      kv:
+        enabled: true
+  application:
+    name: admin-service
