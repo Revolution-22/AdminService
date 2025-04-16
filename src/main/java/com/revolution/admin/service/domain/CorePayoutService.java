@@ -1,0 +1,94 @@
+package com.revolution.admin.service.domain;
+
+import com.revolution.admin.service.api.dto.PayoutDto;
+import com.revolution.admin.service.api.exception.PayoutNotFoundException;
+import com.revolution.admin.service.api.port.BrokerService;
+import com.revolution.admin.service.api.port.OrderService;
+import com.revolution.admin.service.api.port.PayoutRepository;
+import com.revolution.admin.service.api.port.PayoutService;
+import com.revolution.admin.service.api.port.UserService;
+import com.revolution.admin.service.api.query.PayoutFilterQuery;
+import com.revolution.admin.service.api.response.AdminUserResponse;
+import com.revolution.admin.service.api.response.PayoutResponse;
+import com.revolution.common.command.OrderCommand;
+import com.revolution.common.event.EmailNotifyEvent;
+import com.revolution.common.event.PayoutEvent;
+import com.revolution.common.event.Topics;
+import com.revolution.common.response.OrderResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.util.function.Function;
+
+@RequiredArgsConstructor
+class CorePayoutService implements PayoutService {
+
+    private static final String ADMIN_EMAIL = "kwolny31@gmail.com";
+    private static final String SUBJECT = "Revolution-22 :: Nowe zlecenie wyplaty";
+
+    private final PayoutRepository payoutRepository;
+    private final OrderService orderService;
+    private final UserService userService;
+    private final BrokerService brokerService;
+
+    @Override
+    public Page<PayoutResponse> getPayouts(Pageable pageable, PayoutFilterQuery filterQuery) {
+        return payoutRepository.findAll(pageable, filterQuery)
+                .map(mapPayoutFromExternalService());
+    }
+
+    @Override
+    public void handlePayout(PayoutEvent event) {
+        PayoutDto payoutDto = payoutRepository.save(
+                new PayoutDto(event.bankAccountNumber(), event.orderId(), event.receiverId(), event.amount(), false)
+        );
+
+        PayoutResponse response = getPayoutResponse(payoutDto);
+
+        brokerService.publishMessage(Topics.EMAIL_NOTIFICATION_TOPIC, new EmailNotifyEvent(ADMIN_EMAIL, SUBJECT, getMessage(response, payoutDto)));
+    }
+
+    private static String getMessage(final PayoutResponse response, final PayoutDto payoutDto) {
+        return """
+                Witaj! <br>
+                Użytkownik %s zgłosił prośbę o wypłatę zamówienia. <br>
+                Lista przedmiotów: <br>
+                %s
+                <br>
+                <br>
+                Wartość zamówienia: %s <br>
+                Numer konta bankowego: %s <br>
+                Email: %s <br>
+                <br>
+                Prosimy o niezwłoczną wypłatę po weryfikacji!
+                """
+                .formatted(
+                    response.username(),
+                    response.orderResponse().items(),
+                    payoutDto.amount(),
+                    response.bankAccountNumber(),
+                    response.email()
+        );
+    }
+
+    private PayoutResponse getPayoutResponse(PayoutDto dto) {
+        return payoutRepository.findByOrderIdAndReceiverId(dto.orderId(), dto.receiverId())
+                .map(mapPayoutFromExternalService())
+                .orElseThrow(() -> new PayoutNotFoundException(dto.orderId(), dto.receiverId()));
+    }
+
+    private Function<PayoutDto, PayoutResponse> mapPayoutFromExternalService() {
+        return payout -> {
+            OrderResponse orderResponse = orderService.getOrder(
+                    new OrderCommand(payout.orderId(), payout.receiverId())
+            );
+            AdminUserResponse userResponse = userService.getUserById(payout.receiverId());
+            return new PayoutResponse(
+                    userResponse.email(),
+                    userResponse.username(),
+                    payout.bankAccountNumber(),
+                    orderResponse);
+        };
+    }
+}

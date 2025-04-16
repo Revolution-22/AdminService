@@ -1,4 +1,4 @@
-package com.revolution.AdminService;
+package com.revolution.admin.service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
