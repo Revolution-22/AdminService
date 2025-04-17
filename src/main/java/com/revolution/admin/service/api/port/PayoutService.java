@@ -11,5 +11,7 @@ public interface PayoutService {
 
     Page<PayoutResponse> getPayouts(Pageable pageable, PayoutFilterQuery filterQuery);
 
+    PayoutResponse changeStatus(long orderId, long receiverId, boolean status);
+
     void handlePayout(PayoutEvent event);
 }

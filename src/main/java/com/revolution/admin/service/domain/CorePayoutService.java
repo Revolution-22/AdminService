@@ -31,15 +31,24 @@ class CorePayoutService implements PayoutService {
     private final OrderService orderService;
     private final UserService userService;
     private final BrokerService brokerService;
+    private final CoreMapper coreMapper;
 
     @Override
-    public Page<PayoutResponse> getPayouts(Pageable pageable, PayoutFilterQuery filterQuery) {
+    public Page<PayoutResponse> getPayouts(final Pageable pageable, final PayoutFilterQuery filterQuery) {
         return payoutRepository.findAll(pageable, filterQuery)
                 .map(mapPayoutFromExternalService());
     }
 
     @Override
-    public void handlePayout(PayoutEvent event) {
+    public PayoutResponse changeStatus(final long orderId, final long receiverId, final boolean status) {
+        PayoutDto payoutDto = payoutRepository.findByOrderIdAndReceiverId(orderId, receiverId)
+                .orElseThrow(() -> new PayoutNotFoundException(orderId, receiverId));
+        PayoutDto changedPayoutDto = coreMapper.changeStatus(payoutDto, status);
+        return getPayoutResponse(payoutRepository.save(changedPayoutDto));
+    }
+
+    @Override
+    public void handlePayout(final PayoutEvent event) {
         PayoutDto payoutDto = payoutRepository.save(
                 new PayoutDto(event.bankAccountNumber(), event.orderId(), event.receiverId(), event.amount(), false)
         );
@@ -52,7 +61,7 @@ class CorePayoutService implements PayoutService {
     private static String getMessage(final PayoutResponse response, final PayoutDto payoutDto) {
         return """
                 Witaj! <br>
-                Użytkownik %s zgłosił prośbę o wypłatę zamówienia. <br>
+                Użytkownik %s zgłosił prośbę o wypłatę z zamówienia {%s} <br>
                 Lista przedmiotów: <br>
                 %s
                 <br>
@@ -64,15 +73,16 @@ class CorePayoutService implements PayoutService {
                 Prosimy o niezwłoczną wypłatę po weryfikacji!
                 """
                 .formatted(
-                    response.username(),
-                    response.orderResponse().items(),
-                    payoutDto.amount(),
-                    response.bankAccountNumber(),
-                    response.email()
+                        payoutDto.orderId(),
+                        response.username(),
+                        response.orderResponse().items(),
+                        payoutDto.amount(),
+                        response.bankAccountNumber(),
+                        response.email()
         );
     }
 
-    private PayoutResponse getPayoutResponse(PayoutDto dto) {
+    private PayoutResponse getPayoutResponse(final PayoutDto dto) {
         return payoutRepository.findByOrderIdAndReceiverId(dto.orderId(), dto.receiverId())
                 .map(mapPayoutFromExternalService())
                 .orElseThrow(() -> new PayoutNotFoundException(dto.orderId(), dto.receiverId()));
