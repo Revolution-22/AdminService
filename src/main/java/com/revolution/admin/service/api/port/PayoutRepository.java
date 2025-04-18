@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.Optional;
 
 public interface PayoutRepository {
-    Page<PayoutDto> findAll(Pageable pageable, PayoutFilterQuery filterQuery);
+    Page<PayoutDto> findAllByFilterQuery(Pageable pageable, PayoutFilterQuery filterQuery);
 
     PayoutDto save(PayoutDto payoutDto);
 

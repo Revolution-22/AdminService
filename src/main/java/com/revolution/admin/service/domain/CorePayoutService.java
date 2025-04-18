@@ -35,7 +35,7 @@ class CorePayoutService implements PayoutService {
 
     @Override
     public Page<PayoutResponse> getPayouts(final Pageable pageable, final PayoutFilterQuery filterQuery) {
-        return payoutRepository.findAll(pageable, filterQuery)
+        return payoutRepository.findAllByFilterQuery(pageable, filterQuery)
                 .map(mapPayoutFromExternalService());
     }
 

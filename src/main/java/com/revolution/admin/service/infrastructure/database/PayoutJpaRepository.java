@@ -18,7 +18,7 @@ interface PayoutJpaRepository extends JpaRepository<PayoutEntity, PayoutEntityId
         ORDER BY p.order_id, p.receiver_id
         LIMIT :limit OFFSET :offset
     """, nativeQuery = true)
-    Page<PayoutEntity> findAll(Pageable pageable, String username, Boolean paid);
+    Page<PayoutEntity> findAllByFilterQuery(Pageable pageable, String username, Boolean paid);
 
     Optional<PayoutEntity> findByOrderIdAndReceiverId(long orderId, long receiverId);
 }

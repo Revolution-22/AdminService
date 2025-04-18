@@ -21,7 +21,7 @@ class TestPayoutRepository implements PayoutRepository {
     protected Map<Key, PayoutDto> database = new HashMap<>();
 
     @Override
-    Page<PayoutDto> findAll(final Pageable pageable, final PayoutFilterQuery filterQuery) {
+    Page<PayoutDto> findAllByFilterQuery(final Pageable pageable, final PayoutFilterQuery filterQuery) {
         List<PayoutDto> filtered = database.values().stream()
                 .filter(payout -> filterQuery.username() == null || userRespository.findAll(
                         PageRequest.of(0, 10000),

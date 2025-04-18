@@ -18,8 +18,8 @@ class PayoutRepositoryAdapter implements PayoutRepository {
     private final PayoutMapper payoutMapper;
 
     @Override
-    public Page<PayoutDto> findAll(final Pageable pageable, final PayoutFilterQuery filterQuery) {
-        return payoutJpaRepository.findAll(pageable, filterQuery.username(), filterQuery.isPaid())
+    public Page<PayoutDto> findAllByFilterQuery(final Pageable pageable, final PayoutFilterQuery filterQuery) {
+        return payoutJpaRepository.findAllByFilterQuery(pageable, filterQuery.username(), filterQuery.isPaid())
                 .map(payoutMapper::toDto);
     }
 
