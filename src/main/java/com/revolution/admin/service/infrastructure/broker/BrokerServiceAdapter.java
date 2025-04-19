@@ -1,4 +1,4 @@
-package com.revolution.admin.service.infrastructure.adapter;
+package com.revolution.admin.service.infrastructure.broker;
 
 import com.revolution.admin.service.api.port.BrokerService;
 import lombok.RequiredArgsConstructor;
