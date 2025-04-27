@@ -27,6 +27,20 @@ class CorePayoutService implements PayoutService {
     private static final String ADMIN_EMAIL = "kwolny31@gmail.com";
     private static final String SUBJECT = "Revolution-22 :: Nowe zlecenie wyplaty";
 
+    private static final String MESSAGE = """
+                Witaj! <br>
+                Użytkownik %s zgłosił prośbę o wypłatę z zamówienia {%s} <br>
+                Lista przedmiotów: <br>
+                %s
+                <br>
+                <br>
+                Wartość zamówienia: %s <br>
+                Numer konta bankowego: %s <br>
+                Email: %s <br>
+                <br>
+                Prosimy o niezwłoczną wypłatę po weryfikacji!
+                """;
+
     private final PayoutRepository payoutRepository;
     private final OrderService orderService;
     private final UserService userService;
@@ -59,20 +73,7 @@ class CorePayoutService implements PayoutService {
     }
 
     private static String getMessage(final PayoutResponse response, final PayoutDto payoutDto) {
-        return """
-                Witaj! <br>
-                Użytkownik %s zgłosił prośbę o wypłatę z zamówienia {%s} <br>
-                Lista przedmiotów: <br>
-                %s
-                <br>
-                <br>
-                Wartość zamówienia: %s <br>
-                Numer konta bankowego: %s <br>
-                Email: %s <br>
-                <br>
-                Prosimy o niezwłoczną wypłatę po weryfikacji!
-                """
-                .formatted(
+        return MESSAGE.formatted(
                         payoutDto.orderId(),
                         response.username(),
                         response.orderResponse().items(),
