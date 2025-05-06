@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -20,5 +21,7 @@ interface PayoutJpaRepository extends JpaRepository<PayoutEntity, PayoutEntityId
     """, nativeQuery = true)
     Page<PayoutEntity> findAllByFilterQuery(Pageable pageable, String username, Boolean paid);
 
-    Optional<PayoutEntity> findByOrderIdAndReceiverId(long orderId, long receiverId);
+    @Query("SELECT p FROM PayoutEntity p WHERE p.id.orderId = :orderId AND p.id.receiverId = :receiverId")
+    Optional<PayoutEntity> findByOrderIdAndReceiverId(@Param("orderId") long orderId, @Param("receiverId") long receiverId);
+
 }

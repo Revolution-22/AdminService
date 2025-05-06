@@ -24,7 +24,7 @@ class PayoutListener {
 
     @KafkaListener(topics = Topics.PAYOUT_TOPIC, groupId = GROUP_ID)
     void listen(String payload) throws JsonProcessingException {
-        log.info("Received RegisterEvent: {}", payload);
+        log.info("Received PayoutEvent: {}", payload);
         PayoutEvent event = objectMapper.readValue(payload, PayoutEvent.class);
         payoutService.handlePayout(event);
     }

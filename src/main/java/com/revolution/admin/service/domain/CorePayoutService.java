@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 class CorePayoutService implements PayoutService {
@@ -28,18 +29,19 @@ class CorePayoutService implements PayoutService {
     private static final String SUBJECT = "Revolution-22 :: Nowe zlecenie wyplaty";
 
     private static final String MESSAGE = """
-                Witaj! <br>
-                Użytkownik %s zgłosił prośbę o wypłatę z zamówienia {%s} <br>
-                Lista przedmiotów: <br>
-                %s
-                <br>
-                <br>
-                Wartość zamówienia: %s <br>
-                Numer konta bankowego: %s <br>
-                Email: %s <br>
-                <br>
-                Prosimy o niezwłoczną wypłatę po weryfikacji!
-                """;
+            Witaj! <br>
+            Użytkownik %s zgłosił prośbę o wypłatę z zamówienia {%s} <br>
+            Lista przedmiotów: <br>
+            %s
+            <br>
+            <br>
+            Wartość zamówienia: %s <br>
+            Numer konta bankowego: %s <br>
+            Email: %s <br>
+            <br>
+            Prosimy o niezwłoczną wypłatę po weryfikacji!
+            """;
+
 
     private final PayoutRepository payoutRepository;
     private final OrderService orderService;
@@ -73,13 +75,17 @@ class CorePayoutService implements PayoutService {
     }
 
     private static String getMessage(final PayoutResponse response, final PayoutDto payoutDto) {
+        String itemsFormatted = response.orderResponse().items().stream()
+                .map(item -> String.format("Nazwa: %s, Cena: %.2f", item.name(), item.price()))
+                .collect(Collectors.joining("<br>"));
+
         return MESSAGE.formatted(
-                        payoutDto.orderId(),
-                        response.username(),
-                        response.orderResponse().items(),
-                        payoutDto.amount(),
-                        response.bankAccountNumber(),
-                        response.email()
+                response.username(),
+                payoutDto.orderId(),
+                itemsFormatted,
+                payoutDto.amount(),
+                response.bankAccountNumber(),
+                response.email()
         );
     }
 

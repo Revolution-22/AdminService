@@ -1,5 +1,6 @@
-package com.revolution.admin.service.infrastructure.filter;
+package com.revolution.admin.service.infrastructure.configuration;
 
+import com.revolution.admin.service.infrastructure.filter.GroupFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

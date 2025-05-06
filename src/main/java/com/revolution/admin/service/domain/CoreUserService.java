@@ -7,6 +7,7 @@ import com.revolution.admin.service.api.port.UserService;
 import com.revolution.admin.service.api.query.UserFilterQuery;
 import com.revolution.admin.service.api.response.AdminUserResponse;
 import com.revolution.common.event.RegisterEvent;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
